@@ -140,4 +140,4 @@ class MetaPlugin(BasePlugin[MetaPluginConfig]):
     def on_post_template(self, output_content: str, /, *, template_name: str, config: MkDocsConfig) -> str | None:  # noqa: ARG002
         if template_name == "sitemap.xml":
             log.debug(template_name)
-            # log.debug(output_content)  # noqa: ERA001
+            # log.debug(output_content)

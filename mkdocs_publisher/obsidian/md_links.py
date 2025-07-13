@@ -97,7 +97,7 @@ class MarkdownLinks:
     def normalize_relative_link(self, match: re.Match) -> str:
         md_link_obj = links.RelativeLinkMatch(**match.groupdict())
         md_link_obj.relative_path_finder = links.RelativePathFinder(
-            current_file_path=cast(Path, self._current_file_path),
+            current_file_path=cast("Path", self._current_file_path),
             docs_dir=Path(self._mkdocs_config.docs_dir),
             blog_dir=Path(self._blog_config.blog_dir) if self._blog_config else None,
             relative_path=Path(self._blog_config.blog_dir),

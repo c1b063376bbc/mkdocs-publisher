@@ -84,7 +84,7 @@ def get_mkdocs_config() -> MkDocsConfig:
         mkdocs_config_dict = yaml.yaml_load(mkdocs_yaml_file)
         mkdocs_config.set_defaults()
         mkdocs_config.load_dict(patch=mkdocs_config_dict)
-    return cast(MkDocsConfig, mkdocs_config)
+    return cast("MkDocsConfig", mkdocs_config)
 
 
 def get_plugin_config(
@@ -105,7 +105,7 @@ def get_plugin_config(
 
         if plugin_config_dict:
             plugin_config = cast(
-                PluginConfigType,
+                "PluginConfigType",
                 plugin_config_type(config_file_path=mkdocs_config.config_file_path),  # type: ignore[reportCallIssue]
             )
             plugin_config.load_dict(patch=plugin_config_dict)
@@ -113,7 +113,7 @@ def get_plugin_config(
             return plugin_config
     elif isinstance(mkdocs_config.plugins, dict):
         if plugin_name in mkdocs_config.plugins:
-            return cast(PluginConfigType, mkdocs_config.plugins[plugin_name].config)
+            return cast("PluginConfigType", mkdocs_config.plugins[plugin_name].config)
     return None
 
 
@@ -125,7 +125,7 @@ def read_md_file(md_file_path: Path) -> tuple[str, dict[str, Any]]:  # pragma: n
 
 
 def _md_any_link_to_text(match: re.Match) -> str:
-    return f'{match.groupdict()["text"]} '
+    return f"{match.groupdict()['text']} "
 
 
 def count_words(content: str) -> int:

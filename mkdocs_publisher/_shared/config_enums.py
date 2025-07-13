@@ -70,7 +70,7 @@ class ConfigChoiceEnum(Enum):
 
     @classmethod
     def choices(cls) -> list:
-        return cls._get_enums(enums=cast(list, cls))
+        return cls._get_enums(enums=cast("list", cls))
 
 
 class OverviewChoiceEnum(ConfigChoiceEnum):

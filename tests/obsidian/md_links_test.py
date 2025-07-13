@@ -141,8 +141,7 @@ from mkdocs_publisher.obsidian.plugin import ObsidianPlugin
         ),
         (
             "Lorem ipsum dolor sit [amet](https://test.it/), consectetur adipiscing ![elit](elit.jpg).",
-            "Lorem ipsum dolor sit [amet](https://test.it/), "
-            "consectetur adipiscing ![elit](elit.jpg){ loading=lazy }.",
+            "Lorem ipsum dolor sit [amet](https://test.it/), consectetur adipiscing ![elit](elit.jpg){ loading=lazy }.",
         ),
     },
 )
@@ -153,7 +152,7 @@ def test_normalize_wiki_links(
     pub_obsidian_plugin: ObsidianPlugin,
     pub_blog_plugin: BlogPlugin,
 ) -> None:
-    mkdocs_config.plugins = cast(PluginCollection, {"pub-obsidian": pub_obsidian_plugin, "pub-blog": pub_blog_plugin})
+    mkdocs_config.plugins = cast("PluginCollection", {"pub-obsidian": pub_obsidian_plugin, "pub-blog": pub_blog_plugin})
     markdown_links = md_links.MarkdownLinks(mkdocs_config=mkdocs_config)
     markdown_links._blog_config = pub_blog_plugin.config
     markdown = markdown_links.normalize_links(markdown=markdown, current_file_path=Path("main.md"))
@@ -190,7 +189,7 @@ def test_normalize_links(
     pub_blog_plugin: BlogPlugin,
 ) -> None:
     pub_obsidian_plugin.config.links.wikilinks_enabled = False
-    mkdocs_config.plugins = cast(PluginCollection, {"pub-obsidian": pub_obsidian_plugin, "pub-blog": pub_blog_plugin})
+    mkdocs_config.plugins = cast("PluginCollection", {"pub-obsidian": pub_obsidian_plugin, "pub-blog": pub_blog_plugin})
     markdown_links = md_links.MarkdownLinks(mkdocs_config=mkdocs_config)
     markdown = markdown_links.normalize_links(markdown=markdown, current_file_path=Path("main.md"))
 
@@ -217,7 +216,7 @@ def test_normalize_relative_links(
     pub_obsidian_plugin: ObsidianPlugin,
     pub_blog_plugin: BlogPlugin,
 ) -> None:
-    mkdocs_config.plugins = cast(PluginCollection, {"pub-obsidian": pub_obsidian_plugin, "pub-blog": pub_blog_plugin})
+    mkdocs_config.plugins = cast("PluginCollection", {"pub-obsidian": pub_obsidian_plugin, "pub-blog": pub_blog_plugin})
     markdown_links = md_links.MarkdownLinks(mkdocs_config=mkdocs_config)
     markdown = markdown_links.normalize_relative_links(
         markdown=markdown,

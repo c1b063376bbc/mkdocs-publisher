@@ -24,7 +24,6 @@ import copy
 import logging
 import re
 from pathlib import Path
-from typing import Any
 from typing import Literal
 from typing import cast
 
@@ -34,6 +33,7 @@ from mkdocs.plugins import BasePlugin
 from mkdocs.plugins import event_priority
 from mkdocs.structure.files import Files
 from mkdocs.structure.nav import Navigation
+from mkdocs.structure.nav import Section
 from mkdocs.structure.pages import Page
 
 from mkdocs_publisher._shared import links
@@ -42,20 +42,6 @@ from mkdocs_publisher._shared import resources
 from mkdocs_publisher.blog.blog_files import BlogFiles
 from mkdocs_publisher.blog.config import BlogPluginConfig
 from mkdocs_publisher.meta.config import MetaPluginConfig
-
-"""
-import contextlib
-from collections import OrderedDict
-from pathlib import Path
-
-from mkdocs_publisher._shared import file_utils
-
-from mkdocs_publisher.blog import creators
-from mkdocs_publisher.blog import modifiers
-from mkdocs_publisher.blog import parsers
-from mkdocs_publisher.blog.structures import BlogConfig
-from mkdocs_publisher.obsidian.md_links import MarkdownLinks
-"""
 
 log = logging.getLogger("mkdocs.publisher.blog.plugin")
 
@@ -93,7 +79,7 @@ class BlogPlugin(BasePlugin[BlogPluginConfig]):
 
         # TODO: move below code to blog_utils.py
         nav = []
-        for nav_item in cast(list, config.nav):
+        for nav_item in cast("list", config.nav):
             nav_item_value = next(iter(nav_item.values()))
             if isinstance(nav_item_value, list):
                 nav_item_value_element = next(iter(nav_item_value[0].values()))
@@ -111,35 +97,9 @@ class BlogPlugin(BasePlugin[BlogPluginConfig]):
             first_value = next(iter(nav[0].keys()))
             if isinstance(first_value, str) and first_value == str(self.config.blog_dir):
                 self._start_page = True
-
+        nav.append({"Mem": "mem.md"})
         config.nav = nav
-
         return config
-
-    def on_nav(self, nav: Navigation, config: MkDocsConfig, files: Files) -> Navigation:  # noqa: ARG002
-        """
-        modifiers.blog_post_nav_remove(start_page=self._start_page, blog_config=self.blog_config, nav=nav)
-        """
-
-        # TODO: move below code to blog_utils.py
-        for file in files:
-            url_parts = file.dest_uri.replace(str(self._blog_files.blog_temp_path), self.config.blog_slug).split("/")
-            if file.src_path.startswith(str(self._blog_files.blog_temp_path)):
-                blog_file = self._blog_files.get_by_temp_file(temp_path=Path(file.src_path))
-                if blog_file is not None:
-                    for i, url_part in enumerate(url_parts):
-                        if url_part == blog_file.path.stem:
-                            url_parts[i] = str(blog_file.slug)
-
-                file.dest_uri = "/".join(url_parts)
-                file.url = "/".join(url_parts[0:-1])
-
-                if file.url == self.config.blog_slug and self._start_page:
-                    # log.warning(file)
-                    file.dest_uri = file.dest_uri.split("/")[-1]
-                    file.url = ""
-
-        return nav
 
     def on_files(self, files: Files, config: MkDocsConfig) -> Files:
         resources.add_extra_css(stylesheet_file_name="blog.min.css", config=config, files=files)
@@ -149,28 +109,51 @@ class BlogPlugin(BasePlugin[BlogPluginConfig]):
             if Path(str(file.abs_src_path)).is_relative_to(str(self._blog_files.abs_blog_path)):
                 files.remove(file=file)
 
+        # Add temporary files for blog that are stored in memory
+
+        for file in self._blog_files.temp_files_generator():
+            files.append(file=file)
+
+        # f = File.generated(config=config, src_uri="mem.md", content="A kuku")
+        # files.append(f)
+
         return files
 
-    @event_priority(-100)  # Run after all other plugins
-    def on_page_context(
-        self,
-        context: dict[str, Any],
-        *,
-        page: Page,
-        config: MkDocsConfig,  # noqa: ARG002
-        nav: Navigation,  # noqa: ARG002
-    ) -> dict[str, Any] | None:
-        """
-        if Path(page.file.src_path).parts[0] == self.config.blog_dir:
-            page.meta[self.config.comments.key_name] = self.config.comments.enabled
+    def on_nav(self, nav: Navigation, config: MkDocsConfig, files: Files) -> Navigation:  # noqa: ARG002
+        for item in nav.items:
+            log.info(item)
+            if isinstance(item, Section) and item.title == self.config.blog_dir:
+                item.title = "Blog"
 
-        # Temporary created files cannot be edited
-        if page.file.src_uri in self.blog_config.temp_files_list:
-            page.edit_url = None
+        # TODO: move below code to blog_utils.py
+        for file in files:
+            url_parts = file.dest_uri.replace(str(self._blog_files.blog_temp_path), self.config.blog_slug).split("/")
+            if file.src_path.startswith(str(self._blog_files.blog_temp_path)):
+                blog_file = self._blog_files.get_by_temp_file(temp_path=Path(file.src_path))
 
-        modifiers.blog_post_nav_next_prev_change(start_page=self._start_page, blog_config=self.blog_config, page=page)
-        """
-        return context
+                if blog_file is not None:
+                    index = url_parts.index(blog_file.path.stem)
+                    url_parts[index] = str(blog_file.slug)
+
+                file.dest_uri = "/".join(url_parts)
+                file.url = "/".join(url_parts[0:-1])
+
+                if file.url == self.config.blog_slug and self._start_page:
+                    file.dest_uri = file.dest_uri.split("/")[-1]
+                    file.url = ""
+
+        return nav
+
+    # @event_priority(-100)  # Run after all other plugins
+    # def on_page_context(
+    #     self,
+    #     context: dict[str, Any],
+    #     *,
+    #     page: Page,
+    #     config: MkDocsConfig,
+    #     nav: Navigation,
+    # ) -> dict[str, Any] | None:
+    #     return context
 
     @event_priority(-99)  # Run after all other plugins
     def on_page_markdown(self, markdown: str, *, page: Page, config: MkDocsConfig, files: Files) -> str | None:  # noqa: ARG002
@@ -203,52 +186,17 @@ class BlogPlugin(BasePlugin[BlogPluginConfig]):
             return md_link
 
         markdown = re.sub(links.RELATIVE_LINK_RE, _blog_relative_link_normalization, markdown)
-
-        """
-        # Dirty hack for blog standalone mode index file
-        if page.file.src_path == "index.md":
-
-            def _blog_index_re(match: re.Match):  # noqa: ANN202
-                blog_link = links.LinkMatch(**match.groupdict())
-                relative_path_finder = links.RelativePathFinder(
-                    current_file_path=Path(page.file.src_path),
-                    docs_dir=Path(config.docs_dir),
-                    relative_path=Path(config.docs_dir),
-                )
-                full_blog_link = relative_path_finder.get_full_file_path(file_path=Path(str(blog_link.link)))
-                blog_link.link = relative_path_finder.get_relative_file_path(file_path=full_blog_link)
-                return str(blog_link)
-
-            markdown = re.sub(links.RELATIVE_LINK_RE, _blog_index_re, markdown)
-        """
+        log.debug(markdown)
         return markdown
 
     @event_priority(-100)  # Run after all other plugins
     def on_post_build(self, *, config: MkDocsConfig) -> None:  # noqa: ARG002
         self._blog_files.remove_temp_dirs()
 
-        """
-        # ==== Old below
-        with contextlib.suppress(AttributeError):
-            file_utils.remove_dir(directory=self.blog_config.temp_dir)
-        """
-
     @event_priority(-100)  # Run after all other plugins
     def on_build_error(self, error: Exception) -> None:  # noqa: ARG002
         self._blog_files.remove_temp_dirs()
 
-        """
-        # ==== Old below
-        with contextlib.suppress(AttributeError):
-            file_utils.remove_dir(directory=self.blog_config.temp_dir)
-        """
-
     @event_priority(-100)  # Run after all other plugins
     def on_shutdown(self) -> None:
         self._blog_files.remove_temp_dirs()
-
-        """
-        # ==== Old below
-        with contextlib.suppress(AttributeError):
-            file_utils.remove_dir(directory=self.blog_config.temp_dir)
-        """

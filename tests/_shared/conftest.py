@@ -27,7 +27,7 @@ import pytest
 from mkdocs_publisher._shared import links
 
 
-@pytest.fixture()
+@pytest.fixture
 def relative_path_finder(test_data_dir: Path) -> links.RelativePathFinder:
     return links.RelativePathFinder(
         current_file_path=Path("current/file.md"),
@@ -36,7 +36,7 @@ def relative_path_finder(test_data_dir: Path) -> links.RelativePathFinder:
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def relative_sub_path_finder(test_data_dir: Path) -> links.RelativePathFinder:
     return links.RelativePathFinder(
         current_file_path=Path("current/cur_sub/cur_sub_file.md"),
@@ -45,7 +45,7 @@ def relative_sub_path_finder(test_data_dir: Path) -> links.RelativePathFinder:
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def relative_blog_path_finder(test_data_dir: Path) -> links.RelativePathFinder:
     return links.RelativePathFinder(
         current_file_path=Path("relative/rel_file.md"),

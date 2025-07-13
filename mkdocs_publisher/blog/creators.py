@@ -74,7 +74,7 @@ def create_blog_post_pages(  # noqa: C901
         index = (
             "index"
             if index < blog_config.plugin_config.posts_per_page
-            else f"index-{index//blog_config.plugin_config.posts_per_page!s}"
+            else f"index-{index // blog_config.plugin_config.posts_per_page!s}"
         )
         if index not in posts_chunks:
             posts_chunks[index] = []
@@ -88,13 +88,13 @@ def create_blog_post_pages(  # noqa: C901
             archive_chunks[year] = []
         archive_chunks[year].append(blog_config.blog_posts[date].as_dict)
 
-        categories = cast(str, blog_config.blog_posts[date].categories)
+        categories = cast("str", blog_config.blog_posts[date].categories)
         for category in categories:
             if category not in categories_chunks:
                 categories_chunks[category] = []
             categories_chunks[category].append(blog_config.blog_posts[date].as_dict)
 
-        tags = cast(list, blog_config.blog_posts[date].tags)
+        tags = cast("list", blog_config.blog_posts[date].tags)
         for tag in tags:
             if tag not in tags_chunks:
                 tag = tag.replace("/", "-")
@@ -205,9 +205,9 @@ def _render_and_write_page(
     page_title: str,
 ) -> None:
     # TODO: Add templates from override
-    # templates = jinja2.Environment(loader=jinja2.FileSystemLoader("templates/"))  # noqa: ERA001
-    # print(templates.list_templates())  # noqa: ERA001
-    # template = templates.get_template("index.html")  # noqa: ERA001
+    # templates = jinja2.Environment(loader=jinja2.FileSystemLoader("templates/"))
+    # print(templates.list_templates())
+    # template = templates.get_template("index.html")
 
     post_context = {
         "posts": single_posts_chunk,

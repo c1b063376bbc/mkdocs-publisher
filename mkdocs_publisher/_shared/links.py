@@ -200,7 +200,7 @@ class _LinksCommon:
 
     @property
     def _extra(self) -> str:
-        return f'{{ {" ".join(self._extra_list)} }}' if self._extra_list else ""
+        return f"{{ {' '.join(self._extra_list)} }}" if self._extra_list else ""
 
 
 @dataclass(kw_only=True)

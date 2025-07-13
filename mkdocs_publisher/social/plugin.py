@@ -80,8 +80,7 @@ class SocialPlugin(BasePlugin[SocialPluginConfig]):
             # TODO: use obsidian path link solver when it will be developed
             if image.startswith("../"):
                 image = f"/{image.replace('../', '')}"
-            if image.startswith("/"):
-                image = image[1:]
+            image = image.removeprefix("/")
             image_path = Path(config.docs_dir) / Path(image)
             if not image_path.exists():
                 log.warning(
@@ -89,7 +88,7 @@ class SocialPlugin(BasePlugin[SocialPluginConfig]):
                     f"('{self.config.meta_keys.image_key}' meta key"
                     f" from '{page.file.src_path}' file.)",
                 )
-            image = f'{config.site_url}{image.replace("//", "/")}'
+            image = f"{config.site_url}{image.replace('//', '/')}"
         url = f"{config.site_url}{page.url}"
         site_name = config.site_name
 

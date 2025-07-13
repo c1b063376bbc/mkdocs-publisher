@@ -34,6 +34,7 @@ from typing import Generator  # noqa: UP035
 
 import yaml
 from mkdocs.config.defaults import MkDocsConfig
+from mkdocs.structure.files import File
 
 from mkdocs_publisher._shared import links
 from mkdocs_publisher._shared import mkdocs_utils
@@ -65,6 +66,7 @@ class BlogFiles(publisher_utils.PublisherFiles):
         self._dir_meta_file: str = "README.md"
         self._nav: list[dict[str, str]] = []
         self._on_serve: bool = False
+        self._temp_files: list[File] = []
 
         super().__init__()
 
@@ -176,8 +178,7 @@ class BlogFiles(publisher_utils.PublisherFiles):
             blog_file.tags = ["missing"]
         if self._blog_plugin_config.tags.warn_on_missing and not blog_file.tags:
             log.warning(
-                f"{blog_file.path.name} doesn't contain tags"
-                f" (key name: '{self._blog_plugin_config.tags.key_name}')",
+                f"{blog_file.path.name} doesn't contain tags (key name: '{self._blog_plugin_config.tags.key_name}')",
             )
 
     def _get_published_status(self, blog_file: BlogFile, meta: dict[str, Any]) -> None:
@@ -358,4 +359,17 @@ class BlogFiles(publisher_utils.PublisherFiles):
         if temp_path is None:
             temp_path = abs_temp_path.relative_to(str(self._abs_blog_temp_path))
 
+        temp_path = Path(
+            str(temp_path).replace(
+                str(self.blog_temp_path.joinpath(self._blog_plugin_config.posts.slug)),
+                str(self._blog_plugin_config.blog_dir),
+            ),
+        )
+
         return self.get(str(temp_path).replace(str(self.blog_temp_path), self._blog_plugin_config.blog_dir), None)
+
+    def temp_files_generator(self) -> Generator[File, Any, None]:
+        """Blog in memory files generator used for building navigation"""
+        for temp_file in self._temp_files:
+            temp_file: File
+            yield temp_file

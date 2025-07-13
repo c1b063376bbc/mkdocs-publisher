@@ -34,7 +34,7 @@ from mkdocs_publisher.meta.meta_nav import MetaNav
 from mkdocs_publisher.meta.plugin import MetaPluginConfig
 
 
-@pytest.fixture()
+@pytest.fixture
 def mkdocs_config_with_docs_dir(
     request: SubRequest,
     tmp_path_factory: pytest.TempPathFactory,
@@ -66,7 +66,7 @@ def mkdocs_config_with_docs_dir(
     shutil.rmtree(path=docs_dir.parent, ignore_errors=True)
 
 
-@pytest.fixture()
+@pytest.fixture
 def patched_meta_files() -> MetaFiles:
     def patched_read_md_file(md_file_path: Path) -> tuple[str, dict]:
         _ = md_file_path
@@ -77,7 +77,7 @@ def patched_meta_files() -> MetaFiles:
     return meta_files
 
 
-@pytest.fixture()
+@pytest.fixture
 def patched_meta_nav(patched_meta_files: MetaFiles, mkdocs_config: MkDocsConfig) -> MetaNav:
     def patched_get_metadata(meta_file: MetaFile, meta_file_path: Path) -> None:
         _, _ = meta_file, meta_file_path

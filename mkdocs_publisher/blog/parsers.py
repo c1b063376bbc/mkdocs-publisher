@@ -116,7 +116,7 @@ def parse_markdown_files(  # noqa: C901, PLR0912
                         elif isinstance(post_meta["tags"], str):
                             post_meta["tags"] = [post_meta["tags"]]
                     else:
-                        post_meta["tags"] = ["undefined"]  # TODO: move this value to config
+                        post_meta["tags"] = []
 
                     # Convert categories format
                     if "categories" in post_meta and post_meta["categories"] is not None:
@@ -125,7 +125,7 @@ def parse_markdown_files(  # noqa: C901, PLR0912
                         elif isinstance(post_meta["categories"], str):
                             post_meta["categories"] = [post_meta["categories"]]
                     else:
-                        post_meta["categories"] = ["undefined"]  # TODO: move this value to config
+                        post_meta["categories"] = []
 
                     # Setup date to current one, when missing
                     if "date" in post_meta and post_meta["date"] is None:

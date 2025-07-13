@@ -43,7 +43,7 @@ def test_add_extra_existing_file(caplog: pytest.LogCaptureFixture) -> None:
     existing_file = Path(str(importlib.resources.files(stylesheets).joinpath(STYLESHEET_FILE)))
     expected_path = str(existing_file.relative_to(Path().cwd() / EXTRA_DIR))
     mkdocs_files = Files(files=[])
-    mkdocs_config = cast(MkDocsConfig, MkDocsConfig())
+    mkdocs_config = cast("MkDocsConfig", MkDocsConfig())
 
     with caplog.at_level(level=logging.DEBUG):
         resources._add_extra_file(
@@ -64,7 +64,7 @@ def test_add_extra_non_existing_file(caplog: pytest.LogCaptureFixture) -> None:
     existing_file = Path(str(importlib.resources.files(stylesheets).joinpath(f"{STYLESHEET_FILE}.non")))
     expected_path = str(existing_file.relative_to(Path().cwd() / EXTRA_DIR))
     mkdocs_files = Files(files=[])
-    mkdocs_config = cast(MkDocsConfig, MkDocsConfig())
+    mkdocs_config = cast("MkDocsConfig", MkDocsConfig())
 
     with caplog.at_level(level=logging.DEBUG):
         resources._add_extra_file(
@@ -83,7 +83,7 @@ def test_add_extra_non_existing_file(caplog: pytest.LogCaptureFixture) -> None:
 
 def test_add_stylesheet_file_with_map() -> None:
     mkdocs_files = Files(files=[])
-    mkdocs_config = cast(MkDocsConfig, MkDocsConfig())
+    mkdocs_config = cast("MkDocsConfig", MkDocsConfig())
     expected_file_path = str(Path(STYLESHEET_DIR) / STYLESHEET_FILE)
     expected_file_map_path = str(Path(STYLESHEET_DIR) / STYLESHEET_FILE_MAP)
 
@@ -100,7 +100,7 @@ def test_add_stylesheet_file_with_map() -> None:
 
 def test_add_stylesheet_file_without_map() -> None:
     mkdocs_files = Files(files=[])
-    mkdocs_config = cast(MkDocsConfig, MkDocsConfig())
+    mkdocs_config = cast("MkDocsConfig", MkDocsConfig())
     expected_file_path = str(Path(STYLESHEET_DIR) / STYLESHEET_FILE)
 
     resources.add_extra_css(

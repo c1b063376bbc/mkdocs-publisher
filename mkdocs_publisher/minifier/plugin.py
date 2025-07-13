@@ -82,7 +82,7 @@ class MinifierPlugin(BasePlugin[MinifierPluginConfig]):
                 with cached_files_list.open() as yaml_file:
                     cached_files = yaml.safe_load(yaml_file)
                     for file_path, cached_file in cached_files.items():
-                        cached_files[file_path] = CachedFile(**cast(dict, cached_file))
+                        cached_files[file_path] = CachedFile(**cast("dict", cached_file))
             except (yaml.YAMLError, AttributeError) as e:
                 log.info(f"File '{cached_files_list}' corrupted. Rebuilding cache.")
                 log.debug(e)

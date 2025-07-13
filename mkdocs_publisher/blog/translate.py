@@ -38,7 +38,7 @@ log = logging.getLogger("mkdocs.publisher.blog.translate")
 class Translate:
     def __init__(self, config: BlogPluginConfig) -> None:
         self._config: BlogPluginConfig = config
-        self._translation: Translation = cast(Translation, None)
+        self._translation: Translation = cast("Translation", None)
 
         self._read_lang()
 

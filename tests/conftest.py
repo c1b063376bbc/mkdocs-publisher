@@ -32,17 +32,17 @@ from mkdocs_publisher.meta.plugin import MetaPlugin
 from mkdocs_publisher.obsidian.plugin import ObsidianPlugin
 
 
-@pytest.fixture()
+@pytest.fixture
 def log() -> logging.Logger:
     return logging.getLogger("tests")
 
 
-@pytest.fixture()
+@pytest.fixture
 def test_data_dir() -> Path:
     return Path().cwd() / "tests/_tests_data"
 
 
-@pytest.fixture()
+@pytest.fixture
 def mkdocs_config(request: SubRequest) -> MkDocsConfig:  # type: ignore [reportInvalidTypeForm]
     """Fixture returning MkDocsConfig
 
@@ -68,7 +68,7 @@ def mkdocs_config(request: SubRequest) -> MkDocsConfig:  # type: ignore [reportI
     return config  # type: ignore [reportReturnType]
 
 
-@pytest.fixture()
+@pytest.fixture
 def pub_obsidian_plugin(request: SubRequest) -> ObsidianPlugin:
     try:
         config_dict = request.param
@@ -79,7 +79,7 @@ def pub_obsidian_plugin(request: SubRequest) -> ObsidianPlugin:
     return plugin
 
 
-@pytest.fixture()
+@pytest.fixture
 def pub_blog_plugin(request: SubRequest) -> BlogPlugin:
     try:
         config_dict = request.param
@@ -90,7 +90,7 @@ def pub_blog_plugin(request: SubRequest) -> BlogPlugin:
     return plugin
 
 
-@pytest.fixture()
+@pytest.fixture
 def pub_meta_plugin(request: SubRequest) -> MetaPlugin:
     try:
         config_dict = request.param

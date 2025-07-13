@@ -174,8 +174,7 @@ class ObsidianPlugin(BasePlugin[ObsidianPluginConfig]):
             if (
                 isinstance(event, watchdog.events.FileModifiedEvent)
                 and any(str(event.src_path).startswith(d) for d in docs_dirs_to_skip)
-                or event.is_directory
-            ):
+            ) or event.is_directory:
                 return
 
             with server._rebuild_cond:

@@ -93,7 +93,7 @@ class BlogConfig:
         return temp_files
 
     def parse_configs(self, mkdocs_config: MkDocsConfig, plugin_config: BlogPluginConfig) -> None:
-        from mkdocs_publisher.blog.translate import Translate
+        from mkdocs_publisher.blog.translate import Translate  # noqa: PLC0415
 
         self.mkdocs_config = mkdocs_config
         self.plugin_config = plugin_config

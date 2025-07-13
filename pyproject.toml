@@ -1,9 +1,11 @@
-[tool.poetry]
+[project]
 name = "mkdocs-publisher"
 version = "2.0.0"
+requires-python = ">=3.10"
 description = "Publisher for MkDocs - set of plugins for content creators"
-authors = ["Maciej 'maQ' Kusz <maciej.kusz@gmail.com>"]
-license = "MIT License"
+authors = [{name="Maciej 'maQ' Kusz", email="maciej.kusz@gmail.com"}]
+license = "MIT"
+license-files = ["LICENSE"]
 readme = "README.md"
 keywords = [
     "mkdocs",
@@ -21,9 +23,8 @@ keywords = [
     "publisher",
     "tags",
 ]
-packages = [{ include = "mkdocs_publisher" }]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
     "Environment :: Web Environment",
     "Intended Audience :: Education",
@@ -43,34 +44,59 @@ classifiers = [
     "Topic :: Text Processing :: Markup :: Markdown",
     "Topic :: Utilities",
 ]
-homepage = "https://mkdocs-publisher.github.io/"
-repository = "https://github.com/mkdocs-publisher/mkdocs-publisher"
-documentation = "https://mkdocs-publisher.github.io/"
+dependencies = [
+    "mkdocs~=1.0,>=1.6.1",
+    "beautifulsoup4~=4.0,>=4.13.4",
+    "mkdocs-material~=9.0,>=9.6.15",
+    "colorama>=0.4.6",
+]
 
-[tool.poetry.urls]
+[project.urls]
+Homepage = "https://mkdocs-publisher.github.io/"
+Repository = "https://github.com/mkdocs-publisher/mkdocs-publisher"
+Documentation = "https://mkdocs-publisher.github.io/"
 "Bug Tracker" = "https://github.com/mkdocs-publisher/mkdocs-publisher/issues"
 
-[tool.poetry.dependencies]
-python = "^3.10"
-mkdocs = "^1.6.1"
-pymdown-extensions = "^10.14.3"
-beautifulsoup4 = "^4.13.3"
-mkdocs-material = "^9.6.11"
+[[tool.uv.index]]
+name = "testpypi"
+url = "https://test.pypi.org/simple/"
+publish-url = "https://test.pypi.org/legacy/"
+explicit = true
 
-[tool.poetry.group.dev.dependencies]
-yamllint = "^1.37.0"
-ruff = "^0.5.7"
-pyright = "^1.1.398"
+[dependency-groups]
+dev = [
+    "yamllint~=1.0,>=1.37.1",
+    "ruff>=0.12.2,<2.0",
+    "pyright~=1.0,>=1.1.402",
+    "ty>=0.0.1a13",
+]
+test = [
+    "coverage~=7.0,>=7.8.2",
+    "pytest~=7.0,>=7.4.4",
+    "pytest-cov~=4.0,>=4.1.0",
+    "pytest-check~=2.0,>=2.5.3",
+]
 
-[tool.poetry.group.test.dependencies]
-coverage = "^7.8.0"
-pytest = "^7.4.4"
-pytest-cov = "^4.1.0"
-pytest-check = "^2.5.3"
+[tool.hatch.build]
+include = [
+    "mkdocs_publisher",
+]
+exclude = [
+    "tests",
+    ".github",
+]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ty.rules]
+missing-argument = "ignore"
+redundant-cast = "ignore"
+invalid-assignment = "ignore"
+possibly-unbound-attribute = "ignore"
+invalid-argument-type = "ignore"
+possibly-unbound-implicit-call = "ignore"
 
 [tool.pyright]
 extraPaths = ["mkdocs_publisher"]
@@ -99,11 +125,11 @@ line-length = 120
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
-    # "ANN",
     "ANN101",
     "D",
     "DTZ007",
     "EM102",
+    "ERA001",  # TODO: remove it
     "FIX002",
     "FBT",
     "G004",
@@ -113,9 +139,9 @@ ignore = [
     "PLR2004",
     "PLW2901",
     "S101",
-    "TCH001",
-    "TCH002",
-    "TCH003",
+    "TC001",
+    "TC002",
+    "TC003",
     "TD002",
     "TD003",   # TODO: remove it
     "TRY003",
@@ -142,7 +168,7 @@ skip_covered = true
 [tool.coverage.json]
 pretty_print = true
 
-[tool.poetry.plugins."mkdocs.plugins"]
+[project.entry-points."mkdocs.plugins"]
 pub-blog = "mkdocs_publisher.blog.plugin:BlogPlugin"
 pub-debugger = "mkdocs_publisher.debugger.plugin:DebuggerPlugin"
 pub-meta = "mkdocs_publisher.meta.plugin:MetaPlugin"
@@ -150,5 +176,5 @@ pub-minifier = "mkdocs_publisher.minifier.plugin:MinifierPlugin"
 pub-obsidian = "mkdocs_publisher.obsidian.plugin:ObsidianPlugin"
 pub-social = "mkdocs_publisher.social.plugin:SocialPlugin"
 
-[tool.poetry.scripts]
+[project.scripts]
 mkdocs-pub = "mkdocs_publisher._cli.publisher:app"
