@@ -65,6 +65,10 @@ from mkdocs_publisher.obsidian.plugin import ObsidianPlugin
             "Lorem ipsum dolor sit [file](file.md) amet, consectetur adipiscing elit.",
         ),
         (
+            "Lorem ipsum dolor sit [[file]] amet, consectetur adipiscing elit. [[second_file]].",
+            "Lorem ipsum dolor sit [file](file.md) amet, consectetur adipiscing elit. [second_file](second_file.md).",
+        ),
+        (
             "Lorem ipsum dolor sit [[file]]{ .some .extra } amet, consectetur adipiscing elit.",
             "Lorem ipsum dolor sit [file](file.md){.some .extra} amet, consectetur adipiscing elit.",
         ),
