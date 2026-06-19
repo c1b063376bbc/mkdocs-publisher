@@ -26,8 +26,10 @@ from dataclasses import asdict
 from dataclasses import dataclass
 from dataclasses import field
 from pathlib import Path
+from threading import Lock
 from threading import Semaphore
 from threading import Thread
+from typing import Any
 from typing import Optional
 
 from mkdocs.config.defaults import MkDocsConfig
@@ -65,17 +67,54 @@ class CachedFile:
         return asdict(self)
 
 
+@dataclass
+class MinifierStats:
+    minified_files: int = 0
+    cached_files: int = 0
+    original_size: int = 0
+    minified_size: int = 0
+    _lock: Any = field(default_factory=Lock, init=False, repr=False, compare=False)
+
+    @property
+    def total_files(self) -> int:
+        return self.minified_files + self.cached_files
+
+    @property
+    def saved_size(self) -> int:
+        return self.original_size - self.minified_size
+
+    @property
+    def minification_ratio(self) -> float:
+        if self.original_size <= 0:
+            return 0
+        return self.saved_size / self.original_size * 100
+
+    def add_minified_file(self, original_size: int, minified_size: int) -> None:
+        with self._lock:
+            self.minified_files += 1
+            self.original_size += original_size
+            self.minified_size += minified_size
+
+    def add_cached_file(self, original_size: int, minified_size: int) -> None:
+        with self._lock:
+            self.cached_files += 1
+            self.original_size += original_size
+            self.minified_size += minified_size
+
+
 class BaseMinifier:
     def __init__(
         self,
         plugin_config: MinifierConfig,
         mkdocs_config: MkDocsConfig,
         cached_files: dict[str, CachedFile],
+        stats: Optional[MinifierStats] = None,
     ):
         self._plugin_config: MinifierConfig = plugin_config
         self._mkdocs_config: MkDocsConfig = mkdocs_config
         self._minify_options: Optional[_MinifierCommonConfig] = None
         self._cached_files: dict[str, CachedFile] = cached_files
+        self._stats: MinifierStats = stats or MinifierStats()
         self._cache_enabled: bool = self._plugin_config.cache_enabled
         self._exclude: list = self._plugin_config.exclude[:]
         self._system = platform.system()
@@ -140,13 +179,20 @@ class BaseMinifier:
         new_file.unlink()
         return None
 
-    def _copy_cached_file(self, cached_file: CachedFile):
+    def _copy_cached_file(self, cached_file: CachedFile) -> bool:
         original_file = self._mkdocs_config.site_dir / cached_file.original_file_path
         cache_file = self._plugin_config.cache_dir / cached_file.cached_file_name
         try:
             original_file.write_bytes(cache_file.read_bytes())
+            return True
         except FileNotFoundError as e:
             log.warning(e)
+            return False
+
+    def _get_file_sizes(self, cached_file: CachedFile) -> tuple[int, int]:
+        original_file = self._mkdocs_config.site_dir / cached_file.original_file_path
+        cache_file = self._plugin_config.cache_dir / cached_file.cached_file_name
+        return original_file.stat().st_size, cache_file.stat().st_size
 
     def _minify_with_cache(self, file: Path, cache_enabled: bool, semaphore: Semaphore):
         recreate_file = False
@@ -158,7 +204,9 @@ class BaseMinifier:
                 log.debug(f"{file} hash is equal to one in cache (file: {file_hash})")
                 cached_file_name = self._plugin_config.cache_dir / cached_file.cached_file_name
                 if cached_file_name.exists():
-                    self._copy_cached_file(cached_file=cached_file)
+                    original_size, minified_size = self._get_file_sizes(cached_file=cached_file)
+                    if self._copy_cached_file(cached_file=cached_file):
+                        self._stats.add_cached_file(original_size=original_size, minified_size=minified_size)
                 else:
                     recreate_file = True
             else:
@@ -180,8 +228,10 @@ class BaseMinifier:
             if cached_file:
                 cached_file = self._is_new_smaller(cached_file=cached_file)
             if cached_file:
+                original_size, minified_size = self._get_file_sizes(cached_file=cached_file)
                 self._cached_files[str(cached_file.original_file_path)] = cached_file
-                self._copy_cached_file(cached_file=cached_file)
+                if self._copy_cached_file(cached_file=cached_file):
+                    self._stats.add_minified_file(original_size=original_size, minified_size=minified_size)
         else:
             log.debug(f"{file} is already minified (retrieving from cache)")
         semaphore.release()
