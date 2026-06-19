@@ -156,6 +156,7 @@ pretty_print = true
 
 [project.entry-points."mkdocs.plugins"]
 pub-blog = "mkdocs_publisher.blog.plugin:BlogPlugin"
+pub-common = "mkdocs_publisher.common.plugin:CommonPlugin"
 pub-debugger = "mkdocs_publisher.debugger.plugin:DebuggerPlugin"
 pub-meta = "mkdocs_publisher.meta.plugin:MetaPlugin"
 pub-minifier = "mkdocs_publisher.minifier.plugin:MinifierPlugin"

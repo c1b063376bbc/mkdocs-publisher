@@ -36,6 +36,7 @@ from mkdocs.structure.nav import Navigation
 from mkdocs.structure.pages import Page
 
 from mkdocs_publisher._shared import publisher_utils
+from mkdocs_publisher.common import helpers as common_helpers
 from mkdocs_publisher.meta.config import MetaPluginConfig
 from mkdocs_publisher.meta.meta_files import MetaFiles
 from mkdocs_publisher.meta.meta_nav import MetaNav
@@ -58,6 +59,8 @@ class MetaPlugin(BasePlugin[MetaPluginConfig]):
 
     @event_priority(100)  # Run before any other plugins
     def on_config(self, config: MkDocsConfig) -> Optional[Config]:  # pragma: no cover
+        common_helpers.ensure_common_config(mkdocs_config=config)
+
         # Set some default values
         log.info("Read files and directories metadata")
         blog_dir: Optional[Path] = publisher_utils.get_blog_dir(mkdocs_config=config)
@@ -101,13 +104,13 @@ class MetaPlugin(BasePlugin[MetaPluginConfig]):
     @event_priority(-100)  # Run after all other plugins
     def on_page_markdown(self, markdown: str, *, page: Page, config: MkDocsConfig, files: Files):
         # Modify page update date
-        # TODO: move date format to config
         # TODO: warn on missing in config
         update_date: datetime = page.meta.get(
             "update", page.meta.get("date", datetime.strptime(page.update_date, "%Y-%m-%d"))
         )
+        formatted_update_date = common_helpers.format_date(value=update_date, mkdocs_config=config)
         with contextlib.suppress(AttributeError):
-            page.update_date = update_date.strftime("%Y-%m-%d")
+            page.update_date = formatted_update_date or page.update_date
 
         # Conditionally exclude file from Material for MkDocs search plugin
         if (  # pragma: no cover

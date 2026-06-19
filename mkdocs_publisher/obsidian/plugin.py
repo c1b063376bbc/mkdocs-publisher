@@ -42,6 +42,7 @@ from mkdocs_publisher._shared import markdown_blocks
 from mkdocs_publisher._shared import resources
 from mkdocs_publisher._shared import templates
 from mkdocs_publisher._shared.html_modifiers import HTMLModifier
+from mkdocs_publisher.common import helpers as common_helpers
 from mkdocs_publisher.obsidian.backlinks import BacklinkLinks
 from mkdocs_publisher.obsidian.backlinks import Link
 from mkdocs_publisher.obsidian.callouts import CalloutToAdmonition
@@ -76,6 +77,8 @@ class ObsidianPlugin(BasePlugin[ObsidianPluginConfig]):
         return str(comment)
 
     def on_config(self, config: MkDocsConfig) -> Optional[Config]:
+        common_helpers.ensure_common_config(mkdocs_config=config)
+
         self._backlink_links = BacklinkLinks(mkdocs_config=config, backlinks=self._backlinks)
         self._md_links = MarkdownLinks(mkdocs_config=config)
         return config
@@ -132,7 +135,11 @@ class ObsidianPlugin(BasePlugin[ObsidianPluginConfig]):
                 log.debug(f"Adding backlinks to '{page.file.src_uri}'")
                 backlink_context = {
                     "backlinks": page_backlinks,
-                    "title": "Backlinks",  # TODO: move to translations
+                    "title": common_helpers.get_translation(
+                        mkdocs_config=config,
+                        key="backlinks_title",
+                        default="Backlinks",
+                    ),
                 }
                 backlink_render = templates.render(tpl_file="backlinks.html", context=backlink_context)
                 markdown = f"{markdown}{backlink_render}"
