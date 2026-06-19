@@ -38,6 +38,7 @@ from mkdocs.structure.nav import Navigation
 from mkdocs.structure.pages import Page
 from mkdocs.utils import meta as meta_parser
 
+from mkdocs_publisher._shared import markdown_blocks
 from mkdocs_publisher._shared import resources
 from mkdocs_publisher._shared import templates
 from mkdocs_publisher._shared.html_modifiers import HTMLModifier
@@ -107,7 +108,10 @@ class ObsidianPlugin(BasePlugin[ObsidianPluginConfig]):
         # TODO: add verification if relative backlinks are enabled in .obsidian config
         markdown = self._md_links.normalize_links(markdown=markdown, current_file_path=Path(page.file.src_uri))
         if self.config.comments.enabled:
-            markdown = re.sub(COMMENTS_RE, self._normalize_comments, markdown)
+            markdown = markdown_blocks.apply_outside_fenced_code_blocks(
+                markdown=markdown,
+                callback=lambda markdown_block: re.sub(COMMENTS_RE, self._normalize_comments, markdown_block),
+            )
 
         if self.config.callouts.enabled:
             # TODO: add verification if all things are enabled in mkdocs.yaml config file

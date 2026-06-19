@@ -29,6 +29,7 @@ from mkdocs.config.defaults import MkDocsConfig
 from mkdocs.structure.pages import Page
 
 from mkdocs_publisher._shared import links
+from mkdocs_publisher._shared import markdown_blocks
 from mkdocs_publisher.blog.plugin import BlogPlugin
 
 log = logging.getLogger("mkdocs.publisher.obsidian.backlinks")
@@ -120,10 +121,18 @@ class BacklinkLinks:
 
     def find_markdown_links(self, markdown: str, page: Page):
         # """Find all markdown backlinks"""
-        for line in markdown.split("\n"):
-            for match in re.finditer(links.MD_LINK_RE, line):
-                self._parse_markdown_link(match=match, page=page, line=line)
+        def find_links(markdown_block: str) -> str:
+            for line in markdown_block.split("\n"):
+                for match in re.finditer(links.MD_LINK_RE, line):
+                    self._parse_markdown_link(match=match, page=page, line=line)
+            return markdown_block
+
+        markdown_blocks.apply_outside_fenced_code_blocks(markdown=markdown, callback=find_links)
 
     def convert_to_backlink(self, markdown: str) -> str:
         """Convert backlink to link with an anchor for direct navigation after clicking on it"""
-        return re.sub(links.MD_LINK_RE, self._create_backlink, markdown)
+
+        def convert(markdown_block: str) -> str:
+            return re.sub(links.MD_LINK_RE, self._create_backlink, markdown_block)
+
+        return markdown_blocks.apply_outside_fenced_code_blocks(markdown=markdown, callback=convert)

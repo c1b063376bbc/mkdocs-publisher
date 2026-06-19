@@ -128,6 +128,34 @@ def test_normalize_wiki_links(
     check.equal(expected, markdown, "Wrong wiki link to markdown link")
 
 
+def test_normalize_links_skips_fenced_code_blocks(
+    mkdocs_config: MkDocsConfig,
+    pub_obsidian_plugin: ObsidianPlugin,
+    pub_blog_plugin: BlogPlugin,
+):
+    markdown = (
+        "Lorem [[outside]]\n"
+        "```markdown\n"
+        "[[inside]]\n"
+        "![inside](inside.png)\n"
+        "```\n"
+        "Ipsum ![[outside.pdf]]"
+    )
+    expected = (
+        "Lorem [outside](outside.md)\n"
+        "```markdown\n"
+        "[[inside]]\n"
+        "![inside](inside.png)\n"
+        "```\n"
+        "Ipsum ![outside.pdf](outside.pdf){pdfjs}"
+    )
+    mkdocs_config.plugins = cast(PluginCollection, {"pub-obsidian": pub_obsidian_plugin, "pub-blog": pub_blog_plugin})
+    markdown_links = md_links.MarkdownLinks(mkdocs_config=mkdocs_config)
+    markdown = markdown_links.normalize_links(markdown=markdown, current_file_path=Path("main.md"))
+
+    check.equal(expected, markdown, "Wrong code block link normalization")
+
+
 @pytest.mark.parametrize(
     "markdown,expected",
     {

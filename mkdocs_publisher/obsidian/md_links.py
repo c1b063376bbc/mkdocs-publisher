@@ -29,6 +29,7 @@ from typing import cast
 from mkdocs.config.defaults import MkDocsConfig
 
 from mkdocs_publisher._shared import links
+from mkdocs_publisher._shared import markdown_blocks
 from mkdocs_publisher._shared import mkdocs_utils
 from mkdocs_publisher.blog.config import BlogPluginConfig
 from mkdocs_publisher.obsidian.config import ObsidianPluginConfig
@@ -87,13 +88,17 @@ class MarkdownLinks:
 
     def normalize_links(self, markdown: str, current_file_path: Path) -> str:
         self._current_file_path = current_file_path
-        if self._links_config is not None and self._links_config.links.wikilinks_enabled:
-            markdown = re.sub(links.WIKI_LINK_RE, self._normalize_wiki_link, markdown)
-            markdown = re.sub(links.WIKI_EMBED_LINK_RE, self._normalize_wiki_embed_link, markdown)
-            markdown = re.sub(links.ANCHOR_LINK_RE, self._normalize_anchor_links, markdown)
-        markdown = re.sub(links.MD_EMBED_LINK_RE, self._normalize_md_embed_link, markdown)
-        markdown = re.sub(links.MD_LINK_RE, self._normalize_md_links, markdown)
-        return markdown
+
+        def normalize(markdown_block: str) -> str:
+            if self._links_config is not None and self._links_config.links.wikilinks_enabled:
+                markdown_block = re.sub(links.WIKI_LINK_RE, self._normalize_wiki_link, markdown_block)
+                markdown_block = re.sub(links.WIKI_EMBED_LINK_RE, self._normalize_wiki_embed_link, markdown_block)
+                markdown_block = re.sub(links.ANCHOR_LINK_RE, self._normalize_anchor_links, markdown_block)
+            markdown_block = re.sub(links.MD_EMBED_LINK_RE, self._normalize_md_embed_link, markdown_block)
+            markdown_block = re.sub(links.MD_LINK_RE, self._normalize_md_links, markdown_block)
+            return markdown_block
+
+        return markdown_blocks.apply_outside_fenced_code_blocks(markdown=markdown, callback=normalize)
 
     def normalize_relative_link(self, match: re.Match) -> str:
         md_link_obj = links.RelativeLinkMatch(**match.groupdict())
@@ -107,5 +112,8 @@ class MarkdownLinks:
     def normalize_relative_links(self, markdown: str, current_file_path: Path, current_relative_path: Path) -> str:
         self._current_file_path = current_file_path
         self._current_relative_path = current_relative_path
-        markdown = re.sub(links.RELATIVE_LINK_RE, self.normalize_relative_link, markdown)
-        return markdown
+
+        def normalize(markdown_block: str) -> str:
+            return re.sub(links.RELATIVE_LINK_RE, self.normalize_relative_link, markdown_block)
+
+        return markdown_blocks.apply_outside_fenced_code_blocks(markdown=markdown, callback=normalize)

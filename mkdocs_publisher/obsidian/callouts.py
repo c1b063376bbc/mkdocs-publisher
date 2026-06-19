@@ -24,6 +24,7 @@ import logging
 import re
 from typing import Optional
 
+from mkdocs_publisher._shared import markdown_blocks
 from mkdocs_publisher.obsidian.config import _ObsidianCalloutsConfig
 
 log = logging.getLogger("mkdocs.publisher.obsidian.callouts")
@@ -77,7 +78,26 @@ class CalloutToAdmonition:
 
     def _callout_block_follow(self, match: re.Match, text_indentation: str = "spaces") -> str:
         indentation = self._callout_indentation(match=match, match_group=1, text_indentation=text_indentation)
-        return f"    {indentation} {match.group(3)}\n"
+        return f"    {indentation} {match.group(3)}"
+
+    @staticmethod
+    def _callout_fenced_code_content(match: re.Match, quote_depth: int) -> str:
+        literal_quote_depth = max(match.group(1).count(">") - quote_depth, 0)
+        literal_quote_prefix = "".join("> " for _ in range(literal_quote_depth))
+        return f"{literal_quote_prefix}{match.group(3) or ''}"
+
+    def _callout_fenced_code_block_follow(
+        self,
+        match: re.Match,
+        quote_depth: int,
+        text_indentation: str = "spaces",
+    ) -> str:
+        initial_indentation = "".join(" " for _ in range(match.start(1)))
+        indentation = "".join(
+            INDENTATION_MAPPING.get(text_indentation, "spaces") for _ in range(max(quote_depth - 1, 0))
+        )
+        code_content = self._callout_fenced_code_content(match=match, quote_depth=quote_depth)
+        return f"    {initial_indentation}{indentation} {code_content}"
 
     def _callout_block(self, match: re.Match, text_indentation: str = "spaces") -> str:
         # TODO: add possibility to inject customized callout/admonition from CSS/config
@@ -117,16 +137,55 @@ class CalloutToAdmonition:
         if title and title not in ['""', "''"]:
             title = f'"{title}"'
 
-        return f"{indentation}{foldable} {admonition_type}{align} {title}\n"
+        return f"{indentation}{foldable} {admonition_type}{align} {title}"
 
     def convert_callouts(self, markdown: str, file_path: str) -> str:
         self._current_file_path = file_path
         in_callout_block: bool = False
+        outside_fenced_code_block: Optional[markdown_blocks.FencedCodeBlock] = None
+        fenced_code_block: Optional[markdown_blocks.FencedCodeBlock] = None
+        fenced_code_block_quote_depth: int = 0
         markdown_lines = []
         for line in markdown.split("\n"):
+            if not in_callout_block and outside_fenced_code_block is not None:
+                markdown_lines.append(line)
+                if markdown_blocks.is_fenced_code_block_end(line=line, fenced_code_block=outside_fenced_code_block):
+                    outside_fenced_code_block = None
+                continue
+
             callout_match = re.match(CALLOUT_BLOCK, line)
             callout_follow_match = re.match(CALLOUT_BLOCK_FOLLOW, line)
-            if callout_match:
+
+            if not in_callout_block:
+                outside_fenced_code_block = markdown_blocks.get_fenced_code_block_start(line=line)
+                if outside_fenced_code_block is not None:
+                    markdown_lines.append(line)
+                    continue
+
+            if in_callout_block and fenced_code_block is not None:
+                if callout_follow_match:
+                    markdown_lines.append(
+                        self._callout_fenced_code_block_follow(
+                            match=callout_follow_match,
+                            quote_depth=fenced_code_block_quote_depth,
+                            text_indentation=self._callouts_config.indentation,
+                        )
+                    )
+                    if markdown_blocks.is_fenced_code_block_end(
+                        line=self._callout_fenced_code_content(
+                            match=callout_follow_match,
+                            quote_depth=fenced_code_block_quote_depth,
+                        ),
+                        fenced_code_block=fenced_code_block,
+                    ):
+                        fenced_code_block = None
+                        fenced_code_block_quote_depth = 0
+                else:
+                    in_callout_block = False
+                    fenced_code_block = None
+                    fenced_code_block_quote_depth = 0
+                    markdown_lines.append(line)
+            elif callout_match:
                 in_callout_block = True
                 markdown_lines.append(
                     self._callout_block(match=callout_match, text_indentation=self._callouts_config.indentation)
@@ -138,8 +197,13 @@ class CalloutToAdmonition:
                         text_indentation=self._callouts_config.indentation,
                     )
                 )
+                fenced_code_block = markdown_blocks.get_fenced_code_block_start(line=callout_follow_match.group(3))
+                if fenced_code_block is not None:
+                    fenced_code_block_quote_depth = callout_follow_match.group(1).count(">")
             else:
                 in_callout_block = False
+                fenced_code_block = None
+                fenced_code_block_quote_depth = 0
                 markdown_lines.append(line)
 
         return "\n".join(line for line in markdown_lines)
