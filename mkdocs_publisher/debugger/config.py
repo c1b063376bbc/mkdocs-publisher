@@ -55,6 +55,7 @@ class _DebuggerZipConfig(Config):
     enabled = option.Type(bool, default=True)
     remove_old_files = option.Type(bool, default=True)
     add_pip_freeze = option.Type(bool, default=True)
+    add_minifier_tools = option.Type(bool, default=True)
 
 
 class DebuggerConfig(Config):
