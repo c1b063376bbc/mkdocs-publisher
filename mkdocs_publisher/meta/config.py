@@ -94,9 +94,14 @@ class _MetaRedirectConfig(Config):
     key_name = option.Type(str, default="redirect")
 
 
+class _MetaNavConfig(Config):
+    enabled = option.Type(bool, default=True)
+
+
 class MetaPluginConfig(Config):
     dir_meta_file = option.Choice(["README.md", "index.md"], default="README.md")
 
+    nav: _MetaNavConfig = option.SubConfig(_MetaNavConfig)  # type: ignore
     overview: _MetaOverviewConfig = option.SubConfig(_MetaOverviewConfig)  # type: ignore
     publish: _MetaPublishConfig = option.SubConfig(_MetaPublishConfig)  # type: ignore
     redirect: _MetaRedirectConfig = option.SubConfig(_MetaRedirectConfig)  # type: ignore

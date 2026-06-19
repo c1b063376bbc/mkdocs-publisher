@@ -74,7 +74,8 @@ class MetaPlugin(BasePlugin[MetaPluginConfig]):
         log.info(f"Draft files and directories: {list(self._meta_files.drafts.keys())}")
         log.info(f"Hidden files and directories: {list(self._meta_files.hidden.keys())}")
 
-        config.nav = self._meta_nav.build_nav(mkdocs_config=config)
+        if self.config.nav.enabled:
+            config.nav = self._meta_nav.build_nav(mkdocs_config=config)
 
         return config
 
