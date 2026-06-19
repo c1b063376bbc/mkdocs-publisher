@@ -32,7 +32,11 @@
     </div>
     <div class="col">
     {% for tag in post.tags %}
+        {% if config.tags_pages_enabled %}
         <a href="{{ site_url }}{{ config.slug }}/{{ config.tags_subdir }}/{{ tag }}/">#{{ tag }}</a>
+        {% else %}
+        <span>#{{ tag }}</span>
+        {% endif %}
     {% endfor %}
     </div>
 </div>

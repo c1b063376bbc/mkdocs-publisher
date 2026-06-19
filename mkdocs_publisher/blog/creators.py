@@ -86,18 +86,20 @@ def create_blog_post_pages(
             archive_chunks[year] = []
         archive_chunks[year].append(blog_config.blog_posts[date].as_dict)
 
-        categories = cast(str, blog_config.blog_posts[date].categories)
-        for category in categories:
-            if category not in categories_chunks:
-                categories_chunks[category] = []
-            categories_chunks[category].append(blog_config.blog_posts[date].as_dict)
+        if blog_config.plugin_config.categories_pages_enabled:
+            categories = cast(str, blog_config.blog_posts[date].categories)
+            for category in categories:
+                if category not in categories_chunks:
+                    categories_chunks[category] = []
+                categories_chunks[category].append(blog_config.blog_posts[date].as_dict)
 
-        tags = cast(list, blog_config.blog_posts[date].tags)
-        for tag in tags:
-            if tag not in tags_chunks:
-                tag = tag.replace("/", "-")
-                tags_chunks[tag] = []
-            tags_chunks[tag].append(blog_config.blog_posts[date].as_dict)
+        if blog_config.plugin_config.tags_pages_enabled:
+            tags = cast(list, blog_config.blog_posts[date].tags)
+            for tag in tags:
+                if tag not in tags_chunks:
+                    tag = tag.replace("/", "-")
+                    tags_chunks[tag] = []
+                tags_chunks[tag].append(blog_config.blog_posts[date].as_dict)
 
     # Reorder categories alphabetically
     categories_chunks = {cat: categories_chunks[cat] for cat in sorted(categories_chunks)}
@@ -142,27 +144,29 @@ def create_blog_post_pages(
         }
     )
 
-    config_nav[blog_config.translation.blog_navigation_name].append(
-        {
-            blog_config.translation.categories_navigation_name: _create_pages(
-                blog_config=blog_config,
-                posts_chunks=categories_chunks,
-                sub_dir=Path(blog_config.plugin_config.categories_subdir),
-                page_title=blog_config.translation.categories_page_title,
-            )
-        }
-    )
+    if blog_config.plugin_config.categories_pages_enabled:
+        config_nav[blog_config.translation.blog_navigation_name].append(
+            {
+                blog_config.translation.categories_navigation_name: _create_pages(
+                    blog_config=blog_config,
+                    posts_chunks=categories_chunks,
+                    sub_dir=Path(blog_config.plugin_config.categories_subdir),
+                    page_title=blog_config.translation.categories_page_title,
+                )
+            }
+        )
 
-    config_nav[blog_config.translation.blog_navigation_name].append(
-        {
-            blog_config.translation.tags_navigation_name: _create_pages(
-                blog_config=blog_config,
-                posts_chunks=tags_chunks,
-                sub_dir=Path(blog_config.plugin_config.tags_subdir),
-                page_title=blog_config.translation.tags_page_title,
-            )
-        }
-    )
+    if blog_config.plugin_config.tags_pages_enabled:
+        config_nav[blog_config.translation.blog_navigation_name].append(
+            {
+                blog_config.translation.tags_navigation_name: _create_pages(
+                    blog_config=blog_config,
+                    posts_chunks=tags_chunks,
+                    sub_dir=Path(blog_config.plugin_config.tags_subdir),
+                    page_title=blog_config.translation.tags_page_title,
+                )
+            }
+        )
 
 
 def _create_pages(

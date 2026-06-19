@@ -51,6 +51,8 @@ class BlogPluginConfig(Config):
     searchable_non_posts = option.Type(bool, default=False)
     posts_per_page = option.Type(int, default=5)
     slug = option.Type(str, default="blog")
+    categories_pages_enabled = option.Type(bool, default=True)
+    tags_pages_enabled = option.Type(bool, default=True)
 
     # Directories
     temp_dir = option.Type(str, default=".pub_blog_temp")
