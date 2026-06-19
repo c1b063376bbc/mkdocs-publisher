@@ -20,24 +20,33 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import subprocess
 from unittest.mock import patch
 
-from mkdocs_publisher.debugger import plugin
-from mkdocs_publisher.minifier.config import MinifierConfig
+from click.testing import CliRunner
+
+from mkdocs_publisher._cli.plugins.minifier import app
 
 
-def test_get_minifier_tools_versions():
-    minifier_config = MinifierConfig()
-    minifier_config.load_dict({})
+def test_tools_outputs_minifier_tools_versions():
+    runner = CliRunner()
 
-    def run_subprocess(cmd):
-        if cmd[0] == "pngquant":
-            return subprocess.CompletedProcess(cmd, 0, stdout=b"pngquant 1.0\n", stderr=b"")
-        raise FileNotFoundError
+    with (
+        patch("mkdocs_publisher._cli.plugins.minifier._load_minifier_config", return_value=object()),
+        patch("mkdocs_publisher.minifier.tools.get_minifier_tools_versions", return_value="pngquant: missing"),
+    ):
+        result = runner.invoke(app, ["tools"])
 
-    with patch("mkdocs_publisher.minifier.tools.file_utils.run_subprocess", side_effect=run_subprocess):
-        tools_versions = plugin.get_minifier_tools_versions(minifier_config=minifier_config)
+    assert result.exit_code == 0
+    assert "pngquant: missing" in result.output
 
-    assert "pngquant: pngquant 1.0" in tools_versions
-    assert "oxipng: missing" in tools_versions
+
+def test_clean_cache_removes_cache_directory(tmp_path):
+    runner = CliRunner()
+    cache_dir = tmp_path / ".pub_min_cache"
+    cache_dir.mkdir()
+    (cache_dir / "cached.txt").write_text("cache", encoding="utf-8")
+
+    result = runner.invoke(app, ["clean-cache", "--cache-dir", str(cache_dir), "--yes"])
+
+    assert result.exit_code == 0
+    assert not cache_dir.exists()

@@ -37,6 +37,7 @@ from mkdocs_publisher._shared import mkdocs_utils
 from mkdocs_publisher.debugger import loggers
 from mkdocs_publisher.debugger.config import DebuggerConfig
 from mkdocs_publisher.minifier.config import MinifierConfig
+from mkdocs_publisher.minifier.tools import get_minifier_tools_versions
 
 log = logging.getLogger("mkdocs.publisher.debug.plugin")
 
@@ -51,36 +52,6 @@ FILES_TO_ZIP_LIST = [
 ]
 PIP_FREEZE_FILENAME = "requirements_freeze.txt"
 MINIFIER_TOOLS_FILENAME = "minifier_tools.txt"
-
-
-def get_minifier_tools_versions(minifier_config: MinifierConfig) -> str:
-    tools = {
-        "pngquant": [minifier_config.png.pngquant_path, "--version"],
-        "oxipng": [minifier_config.png.oxipng_path, "--version"],
-        "cjpeg": [minifier_config.jpeg.cjpeg_path, "-version"],
-        "djpeg": [minifier_config.jpeg.djpeg_path, "-version"],
-        "jpegtran": [minifier_config.jpeg.jpegtran_path, "-version"],
-        "svgo": [minifier_config.svg.svgo_path, "--version"],
-        "html-minifier-terser": [minifier_config.html.html_minifier_path, "--version"],
-        "postcss": [minifier_config.css.postcss_path, "--version"],
-        "uglifyjs": [minifier_config.js.uglifyjs_path, "--version"],
-    }
-    tool_versions = []
-    for tool_name, cmd in tools.items():
-        try:
-            result = file_utils.run_subprocess(cmd=cmd)
-        except FileNotFoundError:
-            tool_versions.append(f"{tool_name}: missing")
-            continue
-
-        output = f"{result.stdout.decode('utf-8')}\n{result.stderr.decode('utf-8')}".strip()
-        if result.returncode == 0 and output:
-            tool_versions.append(f"{tool_name}: {output.splitlines()[0]}")
-        elif result.returncode == 0:
-            tool_versions.append(f"{tool_name}: installed")
-        else:
-            tool_versions.append(f"{tool_name}: missing")
-    return "\n".join(tool_versions)
 
 
 class DebuggerPlugin(BasePlugin[DebuggerConfig]):
