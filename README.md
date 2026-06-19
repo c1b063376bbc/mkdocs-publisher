@@ -12,6 +12,7 @@ Publisher for [MkDocs](https://www.mkdocs.org/) is a set of plugins that helps w
 
 ## Features
 
+- `pub-common` - shared settings for date formatting, language and translations used by other Publisher plugins,
 - [pub-meta](https://mkdocs-publisher.github.io/setup/general/pub-meta/) – support for:
 	- automatic [document navigation](https://www.mkdocs.org/user-guide/configuration/#nav) creation based on file names order,
 	- document publication status,
@@ -29,6 +30,8 @@ Publisher for [MkDocs](https://www.mkdocs.org/) is a set of plugins that helps w
 - [pub-social](https://mkdocs-publisher.github.io/setup/seo-and-sharing/pub-social/) – social cards for social media sharing using document metadata,
 - [pub-minifier](https://mkdocs-publisher.github.io/setup/seo-and-sharing/pub-minifier/) – file size optimization (good for SEO and overall page size optimization),
 - [pub-debugger](https://mkdocs-publisher.github.io/setup/development/pub-debugger/) – logging on steroids with the possibility of creating of ZIP file with logs and additional information (can be used for better issue reporting).
+- `pub-offline` - downloads remote assets used by generated pages and rewrites them to local files,
+- `pub-rss` - generates one or more RSS feeds for documents, blog posts or selected directories.
 
 ## Installation
 
@@ -51,13 +54,38 @@ theme: material
 
 plugins:
   - search  # Material for MkDocs search plugin
+  - pub-common
   - pub-debugger
   - pub-blog
   - pub-obsidian
   - pub-social
   - pub-meta
   - pub-minifier
+  - pub-offline
+  - pub-rss
 ```
+
+### RSS feeds
+
+The RSS plugin creates XML feed files during the MkDocs build. By default it writes `rss.xml` for all pages and
+adds an XSL stylesheet so the feed is readable in a browser.
+
+```yaml
+site_url: https://example.com/
+
+plugins:
+  - pub-rss:
+      feeds:
+        - file: rss.xml
+          title: All updates
+        - file: blog/rss.xml
+          title: Blog
+          directories:
+            - blog
+```
+
+Each feed can define a target `file`, display `title`, optional `description` and a list of source `directories`.
+The plugin reads page metadata keys named `date`, `update` and `description` by default.
 
 ## Planned features
 
