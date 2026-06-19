@@ -161,6 +161,7 @@ pub-meta = "mkdocs_publisher.meta.plugin:MetaPlugin"
 pub-minifier = "mkdocs_publisher.minifier.plugin:MinifierPlugin"
 pub-obsidian = "mkdocs_publisher.obsidian.plugin:ObsidianPlugin"
 pub-offline = "mkdocs_publisher.offline.plugin:OfflinePlugin"
+pub-rss = "mkdocs_publisher.rss.plugin:RssPlugin"
 pub-social = "mkdocs_publisher.social.plugin:SocialPlugin"
 
 [project.scripts]
