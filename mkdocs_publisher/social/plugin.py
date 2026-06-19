@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 import logging
+from fnmatch import fnmatch
 from pathlib import Path
 from typing import Optional
 
@@ -59,8 +60,21 @@ class SocialPlugin(BasePlugin[SocialConfig]):
     def on_page_markdown(self, markdown: str, *, page: Page, config: MkDocsConfig, files: Files) -> Optional[str]:
         pass
 
+    def _is_ignored(self, page: Page) -> bool:
+        ignore_meta = page.meta.get(self.config.ignore.key_name, None)
+        if ignore_meta is False:
+            return True
+
+        src_path = str(page.file.src_path)
+        src_uri = str(page.file.src_uri)
+        return any(fnmatch(src_path, pattern) or fnmatch(src_uri, pattern) for pattern in self.config.ignore.patterns)
+
     @event_priority(-99)
     def on_post_page(self, output: str, *, page: Page, config: MkDocsConfig) -> Optional[str]:
+        if self._is_ignored(page=page):
+            log.debug(f"Skipping social properties for ignored file: '{page.file.src_path}'")
+            return output
+
         html_modifier = HTMLModifier(markup=output)
 
         log.debug(f"Processing social properties for file: '{page.file.src_path}'")

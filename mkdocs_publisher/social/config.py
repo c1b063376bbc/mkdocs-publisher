@@ -43,6 +43,11 @@ class _SocialMetaKeysConfig(Config):
     image_key = option.Type(str, default="image")
 
 
+class _SocialIgnoreConfig(Config):
+    patterns = option.Type(list, default=[])
+    key_name = option.Type(str, default="social")
+
+
 class SocialTitleLocationChoiceEnum(ConfigChoiceEnum):
     NONE = 0, False, False
     BEFORE = 1, False, False
@@ -57,6 +62,7 @@ class _SocialSiteNameInTitleConfig(Config):
 
 
 class SocialConfig(Config):
+    ignore: _SocialIgnoreConfig = option.SubConfig(_SocialIgnoreConfig)  # type: ignore
     meta_keys: _SocialMetaKeysConfig = option.SubConfig(_SocialMetaKeysConfig)  # type: ignore
     og: _SocialOpenGraphConfig = option.SubConfig(_SocialOpenGraphConfig)  # type: ignore
     twitter: _SocialTwitterConfig = option.SubConfig(_SocialTwitterConfig)  # type: ignore
